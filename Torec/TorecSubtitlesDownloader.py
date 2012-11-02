@@ -54,7 +54,10 @@ class FirefoxURLHandler():
         data = resp.read()
         
         if (len(data) != 0):
-            data = zlib.decompress(data, 16+zlib.MAX_WBITS)
+            try:
+                data = zlib.decompress(data, 16+zlib.MAX_WBITS)
+            except zlib.error:
+                pass
         
         return (data, resp.headers)
     
@@ -124,11 +127,11 @@ class TorecSubtitlesDownloader:
         
         if shouldUnzip:
             # Unzip the zip file
-            zip = zipfile.ZipFile(subtitlePath, "r")
+            zip = zipfile.ZipFile(fileName, "r")
             zip.extractall(os.path.dirname(fileName))
             zip.close()
             # Remove the unneeded zip file
-            os.remove(subtitlePath)
+            os.remove(fileName)
             
     def sanitize(self, name):
         return re.sub('[\.\[\]\-]', self.DEFAULT_SEPERATOR, name.upper())
@@ -147,8 +150,7 @@ class TorecSubtitlesDownloader:
     def getSubtitleData(self, movieName, resultSubtitleDirectory):
         susbtitlePage = self.getSubtitleMetaData(movieName)
         # Try to choose the most relevant option according to the file name
-        chosenOption = self.findChosenOption(sanitizedName, susbtitlePage)
-        chosenOption = self.findChosenOption(sanitizedName, susbtitlePage)
+        chosenOption = self.findChosenOption(susbtitlePage.name, susbtitlePage)
         if chosenOption != None:
             log(__name__ ,"Found the subtitle type - %s" % chosenOption)
         else:
@@ -166,7 +168,7 @@ class TorecSubtitlesDownloader:
         
             chosenOption = susbtitlePage.options[choice-1]
 
-        # Retrieve the download link and download the 
+        # Retrieve the download link and download the subtitle
         downloadLink = self.getDownloadLink(susbtitlePage.id, chosenOption.id)
         if (downloadLink == ""):
             log(__name__ ,"Download Unsuccessful!")
