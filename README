@@ -1,0 +1,11 @@
+--------------
+- This patch is intented for adding Torec.net subtitle website as part of the available subtitle sites of the XBMC subtitle plugin
+-------------
+
+Installation Steps:
+1. Move the Torec directory to script.xbmc.subtitles/resources/lib/services directory of the box running XBMC
+    APPLE TV 2 - /private/var/mobile/Library/Preferences/XBMC/addons/script.xbmc.subtitles/resources/lib/services
+    PC - 
+    
+2. Move the settings.xml to script.xbmc.subtitles/resources directory of the box running XBMC
+3. Restart XBMC
