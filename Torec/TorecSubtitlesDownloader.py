@@ -130,7 +130,7 @@ class TorecSubtitlesDownloader:
         
         params = {"sub_id" : subID, "code": optionID, "sh" : "yes", "guest" : requestID, "timewaited" : "16"}
         for i in xrange(16):
-            response = self.urlHandler.request("%s/ajax/sub/download.asp" % self.BASE_URL, params, ajax=True)
+            response = self.urlHandler.request("%s/ajax/sub/downloadun.asp" % self.BASE_URL, params, ajax=True)
             if (len(response.data) != 0 or not persist):
                 break
             time.sleep(1)
