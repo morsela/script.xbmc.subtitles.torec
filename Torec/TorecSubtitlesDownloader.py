@@ -3,6 +3,8 @@ import datetime
 import zipfile
 import urllib2
 import urllib
+import codecs
+import shutil
 import time
 import os
 import sys
@@ -11,6 +13,18 @@ import zlib
 from BeautifulSoup import BeautifulSoup
 
 from utilities import *
+
+def convert_file(inFile,outFile):
+	''' Convert a file in cp1255 encoding to utf-8
+	
+	:param inFile: the path to the intput file
+	:param outFile: the path to the output file
+	'''
+	with codecs.open(inFile,"r","cp1255") as f:
+		with codecs.open(outFile, 'w', 'utf-8') as output:
+			for line in f:
+				output.write(line)
+	return
 
 class SubtitleOption(object):
     def __init__(self, name, id):
@@ -140,6 +154,12 @@ class TorecSubtitlesDownloader:
     def download(self, downloadLink):
         response = self.urlHandler.request("%s%s" % (self.BASE_URL, downloadLink))
         fileName = re.search("filename=(.*)", response.headers["content-disposition"]).groups()[0]
+        
+        #convert file from cp1255 to utf-8
+        tempFileName=fileName + ".tmp"
+        convert_file(fileName,tempFileName)
+        shutil.copy(tempFileName,fileName)
+        os.remove(tempFileName)
         return (response.data, fileName)
         
     def saveData(self, fileName, data, shouldUnzip=True):
