@@ -3,14 +3,29 @@ import datetime
 import zipfile
 import urllib2
 import urllib
+import codecs
+import shutil
 import time
 import os
 import sys
 import re
 import zlib
+import os.path
 from BeautifulSoup import BeautifulSoup
 
 from utilities import *
+
+def convert_file(inFile,outFile):
+	''' Convert a file in cp1255 encoding to utf-8
+	
+	:param inFile: the path to the intput file
+	:param outFile: the path to the output file
+	'''
+	with codecs.open(inFile,"r","cp1255") as f:
+		with codecs.open(outFile, 'w', 'utf-8') as output:
+			for line in f:
+				output.write(line)
+	return
 
 class SubtitleOption(object):
     def __init__(self, name, id):
@@ -148,13 +163,26 @@ class TorecSubtitlesDownloader:
         with open( fileName,"wb") as f:
             f.write(data)
         
+        shouldUnzip = True
         if shouldUnzip:
             # Unzip the zip file
+            log(__name__ ,"Unzip the zip file")
+            zipDirPath = os.path.dirname(fileName)
             zip = zipfile.ZipFile(fileName, "r")
-            zip.extractall(os.path.dirname(fileName))
+            zip.extractall(zipDirPath)
             zip.close()
             # Remove the unneeded zip file
             os.remove(fileName)
+            
+            for srtFile in os.listdir(zipDirPath):
+	        if srtFile.endswith(".srt"):
+                    srtFile = os.path.join(zipDirPath,srtFile)
+                    
+                    #convert file from cp1255 to utf-8
+                    tempFileName=srtFile+ ".tmp"
+                    convert_file(srtFile,tempFileName)
+                    shutil.copy(tempFileName,srtFile)
+                    os.remove(tempFileName)
             
     def sanitize(self, name):
         return re.sub('[\.\[\]\-]', self.DEFAULT_SEPERATOR, name.upper())
