@@ -10,6 +10,7 @@ import os
 import sys
 import re
 import zlib
+import os.path
 from BeautifulSoup import BeautifulSoup
 
 from utilities import *
@@ -154,12 +155,6 @@ class TorecSubtitlesDownloader:
     def download(self, downloadLink):
         response = self.urlHandler.request("%s%s" % (self.BASE_URL, downloadLink))
         fileName = re.search("filename=(.*)", response.headers["content-disposition"]).groups()[0]
-        
-        #convert file from cp1255 to utf-8
-        tempFileName=fileName + ".tmp"
-        convert_file(fileName,tempFileName)
-        shutil.copy(tempFileName,fileName)
-        os.remove(tempFileName)
         return (response.data, fileName)
         
     def saveData(self, fileName, data, shouldUnzip=True):
@@ -168,13 +163,26 @@ class TorecSubtitlesDownloader:
         with open( fileName,"wb") as f:
             f.write(data)
         
+        shouldUnzip = True
         if shouldUnzip:
             # Unzip the zip file
+            log(__name__ ,"Unzip the zip file")
+            zipDirPath = os.path.dirname(fileName)
             zip = zipfile.ZipFile(fileName, "r")
-            zip.extractall(os.path.dirname(fileName))
+            zip.extractall(zipDirPath)
             zip.close()
             # Remove the unneeded zip file
             os.remove(fileName)
+            
+            for srtFile in os.listdir(zipDirPath):
+	        if srtFile.endswith(".srt"):
+                    srtFile = os.path.join(zipDirPath,srtFile)
+                    
+                    #convert file from cp1255 to utf-8
+                    tempFileName=srtFile+ ".tmp"
+                    convert_file(srtFile,tempFileName)
+                    shutil.copy(tempFileName,srtFile)
+                    os.remove(tempFileName)
             
     def sanitize(self, name):
         return re.sub('[\.\[\]\-]', self.DEFAULT_SEPERATOR, name.upper())
